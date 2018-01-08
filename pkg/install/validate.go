@@ -161,6 +161,25 @@ func (c *Cluster) validate() (bool, []error) {
 	if c.Name == "" {
 		v.addError(errors.New("Cluster name cannot be empty"))
 	}
+
+	// must be a valid semver, start with "v" and be a "suppored" version
+	if !kubernetesVersionValid(c.Version) {
+		v.addError(fmt.Errorf("Cluster version %q must be a valid version, ie %q", c.Version, kubernetesVersionString))
+	} else {
+		// only go out and get latest version if not disconnected install
+		if !c.DisconnectedInstallation {
+			// should not fail here as its a valid regex
+			version, err := parseVersion(c.Version)
+			if err == nil {
+				latestSemver, latest, _ := kubernetesLatestStableVersion() // will always return some version
+				if version.GT(latestSemver) {
+					v.addError(fmt.Errorf("Cluster version %q greater than the latest stable version %q", c.Version, latest))
+				}
+				// continue with the installation if an error occurs getting the latest version
+			}
+		}
+	}
+
 	v.validate(&c.Networking)
 	v.validate(&c.Certificates)
 	v.validate(&c.SSH)
