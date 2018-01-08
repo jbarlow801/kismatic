@@ -80,8 +80,8 @@ func (e dummyExec) UpgradeClusterServices(plan install.Plan) error {
 
 type dummyProvisioner struct{}
 
-func (p dummyProvisioner) Provision(plan install.Plan) (*install.Plan, error) {
-	return &install.Plan{}, nil
+func (p dummyProvisioner) Provision(plan install.Plan, opts provision.ProvisionOpts) (*install.Plan, error) {
+	return &plan, nil
 }
 
 func (p dummyProvisioner) Destroy(string, string) error {

@@ -11,10 +11,14 @@ import (
 
 const providerDescriptorFilename = "provider.yaml"
 
+type ProvisionOpts struct {
+	AllowDestruction bool
+}
+
 // Provisioner is responsible for creating and destroying infrastructure for
 // a given cluster.
 type Provisioner interface {
-	Provision(install.Plan) (*install.Plan, error)
+	Provision(install.Plan, ProvisionOpts) (*install.Plan, error)
 	Destroy(provider, clusterName string) error
 }
 

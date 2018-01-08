@@ -44,8 +44,9 @@ type ClusterRequest struct {
 
 // provisioner, but without the secrets
 type sanitizedProvisioner struct {
-	Provider string            `json:"provider"`
-	Options  map[string]string `json:"options"`
+	Provider         string            `json:"provider"`
+	Options          map[string]string `json:"options"`
+	AllowDestruction bool              `json:"allowDestruction"`
 }
 
 // ClusterResponse is the cluster resource returned by the server

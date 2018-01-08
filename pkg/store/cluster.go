@@ -32,9 +32,10 @@ type ClusterStatus struct {
 // The Provisioner specifies the infrastructure provisioner that should be used
 // for the cluster.
 type Provisioner struct {
-	Provider string            `json:"provider"`
-	Options  map[string]string `json:"options"`
-	Secrets  map[string]string `json:"secrets"`
+	Provider         string            `json:"provider"`
+	Options          map[string]string `json:"options"`
+	Secrets          map[string]string `json:"secrets"`
+	AllowDestruction bool
 }
 
 // ClusterStore is a smaller interface into the store
