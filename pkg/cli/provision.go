@@ -44,7 +44,7 @@ func NewCmdProvision(in io.Reader, out io.Writer, opts *installOpts) *cobra.Comm
 				SecretsGetter:   environmentSecretsGetter{},
 			}
 
-			updatedPlan, err := tf.Provision(*plan)
+			updatedPlan, err := tf.Provision(*plan, provisionOpts)
 			if err != nil {
 				return err
 			}

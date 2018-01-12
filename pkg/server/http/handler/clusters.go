@@ -42,7 +42,8 @@ type ClusterRequest struct {
 	Provisioner  store.Provisioner `json:"provisioner"`
 }
 
-// provisioner, but without the secrets
+// The Provisioner defines the infrastructure provisioner that should be used
+// for hosting the cluster
 type sanitizedProvisioner struct {
 	Provider         string            `json:"provider"`
 	Options          map[string]string `json:"options"`
