@@ -162,7 +162,7 @@ func (at AnyTerraform) Provision(plan install.Plan, opts ProvisionOpts) (*instal
 		return nil, fmt.Errorf("Error running terraform plan: %s", err)
 	}
 	if !strings.Contains(capture.String(), "0 to destroy") && !opts.AllowDestruction {
-		return nil, fmt.Errorf("Destruction of resources detected when not issuing a destroy. If this is intended, please")
+		return nil, fmt.Errorf("Destruction of resources detected when not issuing a destroy. If this is intended, please re-run the command with --allow-destruction.")
 	}
 	tf.output = old
 
