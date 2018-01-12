@@ -102,6 +102,8 @@ func doPlan(in io.Reader, out io.Writer, planner install.FilePlanner) error {
 	fmt.Fprintf(out, "- %s cluster name\n", name)
 	if provider != "" {
 		fmt.Fprintf(out, "- %s infrastructure provider\n", provider)
+	} else {
+		fmt.Fprintf(out, "- no infrastructure provider\n")
 	}
 	fmt.Fprintf(out, "- %d etcd nodes\n", etcdNodes)
 	fmt.Fprintf(out, "- %d master nodes\n", masterNodes)
