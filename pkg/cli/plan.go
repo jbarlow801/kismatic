@@ -45,7 +45,7 @@ func doPlan(in io.Reader, out io.Writer, planner install.FilePlanner) error {
 	if len(availProviders) > 0 {
 		provider, err = util.PromptForString(in, out, "Infrastructure provider (optional, leave blank if nodes are already provisioned)", "", availProviders)
 		if err != nil {
-			return fmt.Errorf("Error setting infrastructure provisioner: %v", err)
+			return fmt.Errorf("Error setting infrastructure provider: %v", err)
 		}
 	}
 
