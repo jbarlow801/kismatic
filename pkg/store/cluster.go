@@ -35,7 +35,7 @@ type Provisioner struct {
 	Provider         string            `json:"provider"`
 	Options          map[string]string `json:"options"`
 	Secrets          map[string]string `json:"secrets"`
-	AllowDestruction bool
+	AllowDestruction bool              `json:"allowDestruction"`
 }
 
 // ClusterStore is a smaller interface into the store

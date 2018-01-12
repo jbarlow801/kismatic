@@ -1,6 +1,7 @@
 package provision
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/apprenda/kismatic/pkg/install"
 	"github.com/apprenda/kismatic/pkg/ssh"
@@ -24,6 +26,19 @@ type AnyTerraform struct {
 	BinaryPath      string
 	Output          io.Writer
 	SecretsGetter   SecretsGetter
+}
+
+type outputVariableReader struct {
+	clusterName  string
+	stateDir     string
+	tfBinaryPath string
+}
+
+type tfCommand struct {
+	binaryPath string
+	output     io.Writer
+	env        []string
+	workDir    string
 }
 
 // An aggregate of different tfNodes (different fields, the same nodes)
@@ -45,7 +60,7 @@ type tfOutputVar struct {
 
 // Provision creates the infrastructure required to support the cluster defined
 // in the plan
-func (at AnyTerraform) Provision(plan install.Plan) (*install.Plan, error) {
+func (at AnyTerraform) Provision(plan install.Plan, opts ProvisionOpts) (*install.Plan, error) {
 	providerName := plan.Provisioner.Provider
 	providerDir := filepath.Join(at.ProvidersDir, providerName)
 	if _, err := os.Stat(providerDir); os.IsNotExist(err) {
@@ -138,10 +153,18 @@ func (at AnyTerraform) Provision(plan install.Plan) (*install.Plan, error) {
 		return nil, fmt.Errorf("Error initializing terraform: %s", err)
 	}
 
-	// Terraform plan
+	// Terraform plan - checks for destruction
+	var capture bytes.Buffer
+	old := tf.output
+	w := io.MultiWriter(&capture, tf.output)
+	tf.output = w
 	if err := tf.run("plan", fmt.Sprintf("-out=%s", plan.Cluster.Name), providerDir); err != nil {
 		return nil, fmt.Errorf("Error running terraform plan: %s", err)
 	}
+	if !strings.Contains(capture.String(), "0 to destroy") && !opts.AllowDestruction {
+		return nil, fmt.Errorf("Destruction of resources detected when not issuing a destroy. If this is intended, please")
+	}
+	tf.output = old
 
 	// Terraform apply
 	if err := tf.run("apply", "-input=false", plan.Cluster.Name); err != nil {
@@ -285,13 +308,6 @@ func (at AnyTerraform) buildPopulatedPlan(plan install.Plan) (*install.Plan, err
 	return &plan, nil
 }
 
-type tfCommand struct {
-	binaryPath string
-	output     io.Writer
-	env        []string
-	workDir    string
-}
-
 func (tfc tfCommand) run(args ...string) error {
 	cmd := exec.Command(tfc.binaryPath, args...)
 	cmd.Stdout = tfc.output
@@ -300,12 +316,6 @@ func (tfc tfCommand) run(args ...string) error {
 	cmd.Env = append(os.Environ(), "TF_IN_AUTOMATION=True")
 	cmd.Env = append(cmd.Env, tfc.env...)
 	return cmd.Run()
-}
-
-type outputVariableReader struct {
-	clusterName  string
-	stateDir     string
-	tfBinaryPath string
 }
 
 func (ovr outputVariableReader) read(varName string) (*tfOutputVar, error) {
