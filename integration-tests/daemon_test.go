@@ -83,9 +83,11 @@ The error: %v
 					Provisioner: store.Provisioner{
 						Provider: "aws",
 						Options: map[string]string{
+							"region": "us-east-1",
+						},
+						Secrets: map[string]string{
 							"accessKeyId":     accessKeyID,
 							"secretAccessKey": secretAccessKey,
-							"region":          "us-east-1",
 						},
 					},
 				}

@@ -142,6 +142,7 @@ func (api Clusters) Update(w http.ResponseWriter, r *http.Request, p httprouter.
 	fromStore.Spec.DesiredState = req.DesiredState
 	fromStore.Status.WaitingForManualRetry = false
 	fromStore.Spec.Provisioner.Options = req.Provisioner.Options // TODO: Figure out how to prevent user from changing specific options (for example, changing the region)
+	fromStore.Spec.Provisioner.Secrets = req.Provisioner.Secrets
 	fromStore.Spec.MasterCount = req.MasterCount
 	fromStore.Spec.WorkerCount = req.WorkerCount
 	fromStore.Spec.IngressCount = req.IngressCount
