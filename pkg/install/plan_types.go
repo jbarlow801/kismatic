@@ -505,9 +505,87 @@ type Node struct {
 	KubeletOptions KubeletOptions `yaml:"kubelet,omitempty"`
 }
 
+// mapMerge merges two map[string]strings. If both maps have some identical key, the value from the first map provided will be used.
+func mapMerge(l, r map[string]string) map[string]string {
+	ret := make(map[string]string, 0)
+	for k, v := range l {
+		ret[k] = v
+	}
+	for k, v := range r {
+		if _, ok := ret[k]; ok {
+			continue
+		}
+		ret[v] = v
+	}
+	return ret
+}
+
+func merge(l, r []Node) []Node {
+	var ret []Node
+	for len(l) > 0 || len(r) > 0 {
+		if len(l) == 0 {
+			return append(ret, r...)
+		}
+		if len(r) == 0 {
+			return append(ret, l...)
+		}
+		if l[0].Less(r[0]) {
+			ret = append(ret, l[0])
+			l = l[1:]
+		} else if l[0].Equal(r[0]) {
+			merged := Node{
+				IP:         l[0].IP,
+				InternalIP: l[0].InternalIP,
+				Host:       l[0].Host,
+				Labels:     mapMerge(l[0].Labels, r[0].Labels),
+				KubeletOptions: KubeletOptions{
+					Overrides: mapMerge(l[0].KubeletOptions.Overrides, r[0].KubeletOptions.Overrides),
+				},
+			}
+			ret = append(ret, merged)
+			l = l[1:]
+			r = r[1:]
+		} else {
+			ret = append(ret, r[0])
+			r = r[1:]
+		}
+	}
+	return ret
+}
+
+func mergeSort(s []Node) []Node {
+	if len(s) <= 1 {
+		return s
+	}
+	n := len(s) / 2
+	l := mergeSort(s[:n])
+	r := mergeSort(s[n:])
+	return merge(l, r)
+}
+
+func Merge(main, other NodeGroup) NodeGroup {
+	l := mergeSort(main.Nodes)
+	r := mergeSort(other.Nodes)
+	merged := merge(l, r)
+	return NodeGroup{
+		Nodes:         merged,
+		ExpectedCount: len(merged),
+	}
+}
+
 // Equal returns true of 2 nodes have the same host, IP and InternalIP
 func (node Node) Equal(other Node) bool {
-	return node.Host == other.Host && node.IP == other.IP && node.InternalIP == other.InternalIP
+	return node.HashCode() == other.HashCode()
+}
+
+//Leq is like Less(), except it's also true on ==
+func (node Node) Leq(other Node) bool {
+	return node.HashCode() <= other.HashCode()
+}
+
+//Less uses the node's hashcode compare two nodes, returning true if the node's hashcode is less than the other's
+func (node Node) Less(other Node) bool {
+	return node.HashCode() < other.HashCode()
 }
 
 // HashCode is crude implementation for the Node struct
