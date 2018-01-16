@@ -44,8 +44,9 @@ type ClusterRequest struct {
 
 // provisioner, but without the secrets
 type sanitizedProvisioner struct {
-	Provider string            `json:"provider"`
-	Options  map[string]string `json:"options"`
+	Provider         string            `json:"provider"`
+	Options          map[string]string `json:"options"`
+	AllowDestruction bool              `json:"allowDestruction"`
 }
 
 // ClusterResponse is the cluster resource returned by the server
@@ -178,15 +179,14 @@ func (api Clusters) Get(w http.ResponseWriter, r *http.Request, p httprouter.Par
 	}
 
 	clusterResp := buildResponse(id, *fromStore)
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", "  ")
-	err = enc.Encode(clusterResp)
+	bytes, err := json.MarshalIndent(clusterResp, "", "  ")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		api.Logger.Println(errorf("could not marshall response: %v", err))
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintln(w, string(bytes))
 }
 
 // GetAll returns all the clusters that are defined in the API
@@ -202,15 +202,14 @@ func (api Clusters) GetAll(w http.ResponseWriter, r *http.Request, p httprouter.
 	for key, sc := range fromStore {
 		clustersResp = append(clustersResp, buildResponse(key, sc))
 	}
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", "  ")
-	err = enc.Encode(clustersResp)
+	bytes, err := json.MarshalIndent(clustersResp, "", "  ")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		api.Logger.Println(errorf("could not marshall response: %v", err))
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintln(w, string(bytes))
 }
 
 // Delete a cluster

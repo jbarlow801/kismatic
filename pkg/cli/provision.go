@@ -15,6 +15,7 @@ import (
 
 // NewCmdProvision creates a new provision command
 func NewCmdProvision(in io.Reader, out io.Writer, opts *installOpts) *cobra.Command {
+	provisionOpts := provision.ProvisionOpts{}
 	cmd := &cobra.Command{
 		Use:   "provision",
 		Short: "provision your Kubernetes cluster",
@@ -53,6 +54,7 @@ func NewCmdProvision(in io.Reader, out io.Writer, opts *installOpts) *cobra.Comm
 			return nil
 		},
 	}
+	cmd.Flags().BoolVar(&provisionOpts.AllowDestruction, "allow-destruction", false, "Allows possible infrastructure destruction through provisioner planning, required if mutation is scaling down (Use with care)")
 	return cmd
 }
 
