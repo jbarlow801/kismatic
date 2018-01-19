@@ -94,12 +94,18 @@ type environmentSecretsGetter struct{}
 // variables sourcing them from the current process' environment.
 func (environmentSecretsGetter) GetAsEnvironmentVariables(clusterName string, expected map[string]string) ([]string, error) {
 	var vars []string
+	var missingVars []string
+	missing := false
 	for _, expectedEnvVar := range expected {
 		val := os.Getenv(expectedEnvVar)
 		if val == "" {
-			return nil, fmt.Errorf("the %q environment variable is required", expectedEnvVar)
+			missing = true
+			missingVars = append(missingVars, expectedEnvVar)
 		}
 		vars = append(vars, fmt.Sprintf("%s=%s", expectedEnvVar, val))
+	}
+	if missing {
+		return nil, fmt.Errorf("%v", missingVars)
 	}
 	return vars, nil
 }
